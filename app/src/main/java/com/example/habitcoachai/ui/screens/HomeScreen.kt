@@ -63,7 +63,7 @@ fun HomeScreen(navController: NavController) {
             // Get Started Button
             Button(
                 onClick = {
-                    navController.navigate(AppNav.DASHBOARD)
+                    navController.navigate(AppNav.ONBOARDING)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

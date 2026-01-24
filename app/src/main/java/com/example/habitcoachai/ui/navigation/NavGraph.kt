@@ -6,6 +6,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.habitcoachai.ui.screens.DashboardScreen
 import com.example.habitcoachai.ui.screens.HomeScreen
+import com.example.habitcoachai.ui.screens.OnboardingScreen
+
 
 @Composable
 fun NavGraph(){
@@ -17,6 +19,10 @@ fun NavGraph(){
     ) {
         composable(AppNav.WELCOME) {
             HomeScreen(navController)
+        }
+
+        composable(AppNav.ONBOARDING){
+            OnboardingScreen(navController)
         }
 
         composable(AppNav.DASHBOARD) {
