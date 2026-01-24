@@ -39,6 +39,7 @@ fun OnboardingScreen(navController: NavController) {
             .fillMaxSize()
             .background(blueGradient)
             .padding(32.dp)
+            .imePadding()
     ){
     Column(
             modifier = Modifier
@@ -72,7 +73,14 @@ fun OnboardingScreen(navController: NavController) {
             },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color(0xFF1565C0),
+                focusedBorderColor = Color(0xFF1565C0),
+                unfocusedBorderColor = Color(0xFF90CAF9)
+            )
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -106,7 +114,7 @@ fun OnboardingScreen(navController: NavController) {
                 text = "Continue",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                        color = Color.White
             )
         }
     }
