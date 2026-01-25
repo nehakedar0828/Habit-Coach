@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(userName : String) {
 
     val blueGradient = Brush.verticalGradient(
         colors = listOf(
@@ -23,6 +23,12 @@ fun DashboardScreen() {
             Color.White
         )
     )
+
+    val greeting = if(userName.isNullOrEmpty()){
+        "Welcome"
+    }else{
+        "Welcome, $userName"
+    }
 
     Box(
         modifier = Modifier
@@ -32,9 +38,9 @@ fun DashboardScreen() {
         contentAlignment = Alignment.Center
     ){
         Text(
-            text = "Dashboard",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
+            text = greeting,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
             color = Color(0xFF1565C0)
         )
     }
