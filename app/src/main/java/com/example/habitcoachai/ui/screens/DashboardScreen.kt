@@ -5,13 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -35,6 +31,10 @@ fun DashboardScreen(userName: String?) {
             Color.White
         )
     )
+
+    var showDialog by remember { mutableStateOf(false) }
+    var habitName by remember { mutableStateOf("") }
+
 
     // 🗄️ Database + ViewModel
     val context = LocalContext.current
@@ -71,19 +71,89 @@ fun DashboardScreen(userName: String?) {
                 color = Color(0xFF0D47A1)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(22.dp))
+
+            Text(
+                text = "Your current habits : 💪🥳 ",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1565C0)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
 
             // 📋 Habit List
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentPadding = PaddingValues(bottom = 100.dp)
             ) {
                 items(habits) { habit ->
                     HabitCard(habit.name)
                 }
             }
         }
+
+        FloatingActionButton(
+            onClick = { showDialog = true },
+            containerColor = Color(0xFF1565C0),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "+",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
     }
+
+    if(showDialog){
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text(
+                    text = "Add New Habit",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1565C0)
+                )
+            },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = habitName,
+                        onValueChange = { habitName = it },
+                        label = { Text("Habit Name") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            if(habitName.isNotBlank()){
+                                habitViewModel.addHabit(habitName)
+                                habitName = ""
+                                showDialog = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1565C0)
+                        )
+                    ) {
+                        Text("Add Habit",color = Color.White)
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
 }
 
 @Composable
