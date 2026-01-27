@@ -15,4 +15,11 @@ interface HabitDao {
 
     @Query("SELECT * FROM habits ORDER BY id DESC")
     fun getAllHabits(): Flow<List<HabitEntity>>
+
+    @Query("Update habits SET isCompleted = :completed WHERE id = :habitId")
+    suspend fun updateHabitCompletion(
+                 habitId: Int,
+                 completed: Boolean
+    )
+
 }

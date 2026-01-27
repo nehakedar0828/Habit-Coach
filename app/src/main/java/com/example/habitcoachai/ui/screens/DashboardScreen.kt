@@ -89,7 +89,15 @@ fun DashboardScreen(userName: String?) {
                 contentPadding = PaddingValues(bottom = 100.dp)
             ) {
                 items(habits) { habit ->
-                    HabitCard(habit.name)
+                    HabitCard(
+                        habit = habit,
+                        onCheckedChange = { checked ->
+                            habitViewModel.toggleHabitCompletion(
+                                habit.id,
+                                checked
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -157,7 +165,10 @@ fun DashboardScreen(userName: String?) {
 }
 
 @Composable
-fun HabitCard(name: String) {
+fun HabitCard(
+    habit: com.example.habitcoachai.data.local.entity.HabitEntity,
+    onCheckedChange: (Boolean) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -168,12 +179,31 @@ fun HabitCard(name: String) {
             defaultElevation = 4.dp
         )
     ) {
-        Text(
-            text = name,
-            modifier = Modifier.padding(16.dp),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF1565C0)
-        )
+        Row(
+            modifier = Modifier
+                .padding(26.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = habit.isCompleted,
+                onCheckedChange = onCheckedChange,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = Color(0xFF1565C0),
+                )
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Text(
+                text = habit.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = if(habit.isCompleted)
+                    Color(0xFF90A4AE)
+                    else
+                    Color(0xFF1565C0)
+            )
+        }
     }
 }

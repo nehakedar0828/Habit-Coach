@@ -14,4 +14,11 @@ class HabitRepository(
             HabitEntity(name = name)
         )
     }
+
+    suspend fun updateHabitCompletion(
+        habitId: Int,
+        completed: Boolean
+    ){
+        habitDao.updateHabitCompletion(habitId, completed)
+    }
 }
