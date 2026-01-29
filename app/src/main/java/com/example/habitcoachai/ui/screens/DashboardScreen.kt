@@ -13,30 +13,33 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitcoachai.data.local.db.HabitDatabase
+import com.example.habitcoachai.data.local.entity.HabitEntity
 import com.example.habitcoachai.viewmodel.HabitViewModel
 import com.example.habitcoachai.viewmodel.HabitViewModelFactory
+
+/* -------------------- 🎨 BLUE THEME COLORS -------------------- */
+
+private val BackgroundDark = Color(0xFF0E141B)
+private val CardDark = Color(0xFF1B2330)
+private val PrimaryBlue = Color(0xFF7DD3FC)
+private val SecondaryBlue = Color(0xFF38BDF8)
+private val TextPrimary = Color(0xFFF1F5F9)
+private val TextSecondary = Color(0xFF94A3B8)
+private val SuccessGreen = Color(0xFF22C55E)
+
+/* -------------------- 🏠 DASHBOARD SCREEN -------------------- */
 
 @Composable
 fun DashboardScreen(userName: String?) {
 
-    // 🔵 Blue gradient background
-    val blueGradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFFE3F2FD),
-            Color(0xFFBBDEFB),
-            Color.White
-        )
-    )
-
     var showDialog by remember { mutableStateOf(false) }
     var habitName by remember { mutableStateOf("") }
 
-
-    // 🗄️ Database + ViewModel
     val context = LocalContext.current
     val database = remember { HabitDatabase.getDatabase(context) }
 
@@ -46,95 +49,135 @@ fun DashboardScreen(userName: String?) {
 
     val habits by habitViewModel.habits.collectAsState(initial = emptyList())
 
-    // 👋 Greeting text (safe + defensive)
-    val greeting = if (userName.isNullOrBlank()) {
-        "Welcome !👋"
+    val greetingText = if (userName.isNullOrBlank()) {
+        "Welcome 👋"
     } else {
-        "Welcome, $userName !👋"
+        "Welcome, $userName 👋"
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(blueGradient)
-            .padding(24.dp)
+            .background(BackgroundDark)
+            .padding(20.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(top = 32.dp)
-        ) {
 
-            // 👋 Greeting
+        Column {
+
+            /* ---------------- 🧠 HABITCOACHAI HEADER CARD ---------------- */
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    SecondaryBlue.copy(alpha = 0.25f),
+                                    CardDark
+                                )
+                            )
+                        )
+                        .padding(20.dp)
+                ) {
+
+                    Text(
+                        text = "HabitCoachAI",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Build habits. Stay consistent.",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = greetingText,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            /* ---------------- 📌 SECTION TITLE ---------------- */
+
             Text(
-                text = greeting,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF0D47A1)
-            )
-
-            Spacer(modifier = Modifier.height(22.dp))
-
-            Text(
-                text = "Your current habits : 💪🥳 ",
+                text = "Your Habits",
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1565C0)
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            /* ---------------- 📋 HABIT LIST ---------------- */
 
-            // 📋 Habit List
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 100.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                contentPadding = PaddingValues(bottom = 120.dp)
             ) {
                 items(habits) { habit ->
                     HabitCard(
                         habit = habit,
                         onCheckedChange = { checked ->
-                            habitViewModel.toggleHabitCompletion(
-                                habit.id,
-                                checked
-                            )
+                            habitViewModel.toggleHabitCompletion(habit, checked)
                         }
                     )
                 }
             }
         }
 
+        /* ---------------- ➕ FAB ---------------- */
+
         FloatingActionButton(
             onClick = { showDialog = true },
-            containerColor = Color(0xFF1565C0),
+            containerColor = SecondaryBlue,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(24.dp)
+                .padding(16.dp)
         ) {
             Text(
                 text = "+",
-                fontSize = 26.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
         }
     }
 
-    if(showDialog){
+    /* ---------------- ➕ ADD HABIT DIALOG ---------------- */
+
+    if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = {
                 Text(
                     text = "Add New Habit",
-                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1565C0)
+                    color = PrimaryBlue
                 )
             },
             text = {
                 Column {
+
                     OutlinedTextField(
                         value = habitName,
                         onValueChange = { habitName = it },
-                        label = { Text("Habit Name") },
+                        label = { Text("Habit name") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -143,7 +186,7 @@ fun DashboardScreen(userName: String?) {
 
                     Button(
                         onClick = {
-                            if(habitName.isNotBlank()){
+                            if (habitName.isNotBlank()) {
                                 habitViewModel.addHabit(habitName)
                                 habitName = ""
                                 showDialog = false
@@ -151,45 +194,45 @@ fun DashboardScreen(userName: String?) {
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF1565C0)
+                            containerColor = SecondaryBlue
                         )
                     ) {
-                        Text("Add Habit",color = Color.White)
+                        Text("Add Habit", color = Color.White)
                     }
                 }
             },
             confirmButton = {}
         )
     }
-
 }
+
+/* -------------------- 🧩 HABIT CARD -------------------- */
 
 @Composable
 fun HabitCard(
-    habit: com.example.habitcoachai.data.local.entity.HabitEntity,
+    habit: HabitEntity,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE3F2FD)
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        )
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDark),
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
+
         Row(
             modifier = Modifier
-                .padding(26.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Checkbox(
                 checked = habit.isCompleted,
                 onCheckedChange = onCheckedChange,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = Color(0xFF1565C0),
+                    checkedColor = SuccessGreen,
+                    uncheckedColor = TextSecondary
                 )
             )
 
@@ -199,10 +242,9 @@ fun HabitCard(
                 text = habit.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = if(habit.isCompleted)
-                    Color(0xFF90A4AE)
-                    else
-                    Color(0xFF1565C0)
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = if (habit.isCompleted) TextSecondary else TextPrimary
             )
         }
     }

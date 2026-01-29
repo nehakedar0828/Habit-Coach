@@ -19,7 +19,17 @@ interface HabitDao {
     @Query("Update habits SET isCompleted = :completed WHERE id = :habitId")
     suspend fun updateHabitCompletion(
                  habitId: Int,
-                 completed: Boolean
+                 completed: Boolean,
     )
+
+    @Query("""Update habits SET isCompleted = :completed,streak = :streak,lastCompletedDate = :date  WHERE id = :habitId""")
+    suspend fun updateHabitWithStreak(
+        habitId: Int,
+        completed: Boolean,
+        streak: Int,
+        date: String?
+    )
+
+
 
 }

@@ -2,6 +2,7 @@ package com.example.habitcoachai.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.habitcoachai.data.local.entity.HabitEntity
 import com.example.habitcoachai.data.repository.HabitRepository
 import kotlinx.coroutines.launch
 
@@ -17,9 +18,9 @@ class HabitViewModel(
         }
     }
 
-    fun toggleHabitCompletion(habitId: Int, completed: Boolean){
+    fun toggleHabitCompletion(habitId: HabitEntity, completed: Boolean){
         viewModelScope.launch {
-            repository.updateHabitCompletion(habitId, completed)
+            repository.updateHabitCompletionWithStreak(habitId, completed)
         }
     }
 }

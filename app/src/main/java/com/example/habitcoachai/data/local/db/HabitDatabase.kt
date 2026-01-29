@@ -9,7 +9,7 @@ import com.example.habitcoachai.data.local.entity.HabitEntity
 
 @Database(
     entities = [HabitEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 
@@ -27,7 +27,9 @@ abstract class HabitDatabase : RoomDatabase(){
                     context.applicationContext,
                     HabitDatabase::class.java,
                     "habit_db"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
