@@ -4,18 +4,24 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.habitcoachai.data.local.dao.HabitCompletionDao
 import com.example.habitcoachai.data.local.dao.HabitDao
 import com.example.habitcoachai.data.local.entity.HabitEntity
+import com.example.habitcoachai.data.local.entity.HabitCompletionEntity
+
 
 @Database(
-    entities = [HabitEntity::class],
-    version = 2,
+    entities = [HabitEntity::class,
+               HabitCompletionEntity::class],
+    version = 3,
     exportSchema = false
 )
 
 abstract class HabitDatabase : RoomDatabase(){
 
     abstract fun habitDao(): HabitDao
+    abstract fun habitCompletionDao(): HabitCompletionDao
+
 
     companion object {
         @Volatile

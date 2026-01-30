@@ -21,6 +21,14 @@ import com.example.habitcoachai.data.local.db.HabitDatabase
 import com.example.habitcoachai.data.local.entity.HabitEntity
 import com.example.habitcoachai.viewmodel.HabitViewModel
 import com.example.habitcoachai.viewmodel.HabitViewModelFactory
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
+
 
 /* -------------------- 🎨 BLUE THEME COLORS -------------------- */
 
@@ -39,6 +47,7 @@ fun DashboardScreen(userName: String?) {
 
     var showDialog by remember { mutableStateOf(false) }
     var habitName by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
     val context = LocalContext.current
     val database = remember { HabitDatabase.getDatabase(context) }
@@ -48,6 +57,12 @@ fun DashboardScreen(userName: String?) {
     )
 
     val habits by habitViewModel.habits.collectAsState(initial = emptyList())
+    val completedIds by habitViewModel
+        .getCompletedHabitIdsForDate(selectedDate.toString())
+        .collectAsState(initial = emptyList())
+
+    /* ---------------- 🏠 DASHBOARD CONTENT ---------------- */
+
 
     val greetingText = if (userName.isNullOrBlank()) {
         "Welcome 👋"
@@ -62,7 +77,9 @@ fun DashboardScreen(userName: String?) {
             .padding(20.dp)
     ) {
 
-        Column {
+        Column (
+            modifier = Modifier.padding(top = 26.dp)
+        ){
 
             /* ---------------- 🧠 HABITCOACHAI HEADER CARD ---------------- */
 
@@ -84,7 +101,6 @@ fun DashboardScreen(userName: String?) {
                         )
                         .padding(20.dp)
                 ) {
-
                     Text(
                         text = "HabitCoachAI",
                         fontSize = 22.sp,
@@ -124,6 +140,14 @@ fun DashboardScreen(userName: String?) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            DateStrip(
+                selectedDate = selectedDate,
+                onDateSelected = { selectedDate = it }
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+
             /* ---------------- 📋 HABIT LIST ---------------- */
 
             LazyColumn(
@@ -133,8 +157,13 @@ fun DashboardScreen(userName: String?) {
                 items(habits) { habit ->
                     HabitCard(
                         habit = habit,
+                        isChecked = habit.id in completedIds,
                         onCheckedChange = { checked ->
-                            habitViewModel.toggleHabitCompletion(habit, checked)
+                            habitViewModel.toggleHabitForDate(
+                                habit,
+                                selectedDate.toString(),
+                                checked
+                            )
                         }
                     )
                 }
@@ -211,8 +240,9 @@ fun DashboardScreen(userName: String?) {
 @Composable
 fun HabitCard(
     habit: HabitEntity,
+    isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit
-) {
+){
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -228,7 +258,7 @@ fun HabitCard(
         ) {
 
             Checkbox(
-                checked = habit.isCompleted,
+                checked = isChecked,
                 onCheckedChange = onCheckedChange,
                 colors = CheckboxDefaults.colors(
                     checkedColor = SuccessGreen,
@@ -244,8 +274,66 @@ fun HabitCard(
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (habit.isCompleted) TextSecondary else TextPrimary
+                color = if (isChecked) TextSecondary else TextPrimary
             )
         }
     }
 }
+
+
+    @Composable
+    fun DateStrip(
+       selectedDate: LocalDate,
+       onDateSelected: (LocalDate) -> Unit
+    ){
+
+        val today = LocalDate.now()
+
+        val dates = remember{
+            (-7..7).map{today.plusDays(it.toLong())}
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ){
+            dates.forEach {date ->
+
+                val isSelected = date == selectedDate
+
+                val bgColor = if(isSelected) Color(0xFF1565C0) else Color.Black
+                val textColor = if(isSelected) Color.White else Color.White
+
+                Column(
+                    modifier = Modifier
+                        .width(64.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(bgColor)
+                        .clickable { onDateSelected(date) }
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+
+                    Text(
+                        text = date.dayOfWeek.getDisplayName(
+                            TextStyle.SHORT,
+                            Locale.getDefault()),
+                        fontSize = 12.sp,
+                        color = textColor
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = date.dayOfMonth.toString(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                }
+            }
+        }
+    }
+

@@ -10,9 +10,14 @@ class HabitViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+
         if (modelClass.isAssignableFrom(HabitViewModel::class.java)) {
-            val dao = database.habitDao()
-            val repository = HabitRepository(dao)
+
+            val repository = HabitRepository(
+                database.habitDao(),
+                database.habitCompletionDao()
+            )
+
             @Suppress("UNCHECKED_CAST")
             return HabitViewModel(repository) as T
         }

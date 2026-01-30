@@ -18,9 +18,25 @@ class HabitViewModel(
         }
     }
 
-    fun toggleHabitCompletion(habitId: HabitEntity, completed: Boolean){
+    fun toggleHabitCompletion(habit: HabitEntity, completed: Boolean){
         viewModelScope.launch {
-            repository.updateHabitCompletionWithStreak(habitId, completed)
+            repository.updateHabitCompletionWithStreak(habit, completed)
         }
     }
+
+    fun toggleHabitForDate(
+        habit: HabitEntity,
+        date: String,
+        checked: Boolean
+    ){
+        viewModelScope.launch {
+            if(checked){
+                repository.markHabitDoneForDate(habit.id, date.toString())
+            }
+            }
+    }
+
+    fun getCompletedHabitIdsForDate(date: String) =
+        repository.getCompletedHabitIdsForDate(date)
+
 }

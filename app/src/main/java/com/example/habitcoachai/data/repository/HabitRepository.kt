@@ -1,15 +1,18 @@
 package com.example.habitcoachai.data.repository
 
+import com.example.habitcoachai.data.local.dao.HabitCompletionDao
 import com.example.habitcoachai.data.local.dao.HabitDao
+import com.example.habitcoachai.data.local.entity.HabitCompletionEntity
 import com.example.habitcoachai.data.local.entity.HabitEntity
 
 class HabitRepository(
-    private val habitDao: HabitDao
+    private val habitDao: HabitDao,
+    private val completionDao: HabitCompletionDao
 ) {
 
     fun getHabits() = habitDao.getAllHabits()
 
-    suspend fun addHabit(name: String){
+    suspend fun addHabit(name: String) {
         habitDao.insertHabit(
             HabitEntity(name = name)
         )
@@ -18,14 +21,14 @@ class HabitRepository(
     suspend fun updateHabitCompletion(
         habitId: Int,
         completed: Boolean
-    ){
+    ) {
         habitDao.updateHabitCompletion(habitId, completed)
     }
 
     suspend fun updateHabitCompletionWithStreak(
         habit: HabitEntity,
         completed: Boolean
-    ){
+    ) {
         val today = java.time.LocalDate.now()
         val todayStr = today.toString()
 
@@ -33,16 +36,15 @@ class HabitRepository(
             java.time.LocalDate.parse(it)
         }
 
-        val newStreak = if(completed) {
-            if(lastDate == today){
+        val newStreak = if (completed) {
+            if (lastDate == today) {
                 habit.streak
-            }
-            else if(lastDate != null && lastDate.plusDays(1) == today){
+            } else if (lastDate != null && lastDate.plusDays(1) == today) {
                 habit.streak + 1
-            }else{
+            } else {
                 1
             }
-        }else{
+        } else {
             habit.streak
         }
 
@@ -50,7 +52,22 @@ class HabitRepository(
             habitId = habit.id,
             completed = completed,
             streak = newStreak,
-            date = if(completed) todayStr else habit.lastCompletedDate
+            date = if (completed) todayStr else habit.lastCompletedDate
         )
     }
+
+    suspend fun markHabitDoneForDate(
+        habitId: Int,
+        date: String
+    ) {
+        completionDao.insertCompletion(
+            HabitCompletionEntity(
+                habitId = habitId,
+                date = date
+            )
+        )
+    }
+
+    fun getCompletedHabitIdsForDate(date: String) =
+        completionDao.getCompletedHabitIdsForDate(date)
 }

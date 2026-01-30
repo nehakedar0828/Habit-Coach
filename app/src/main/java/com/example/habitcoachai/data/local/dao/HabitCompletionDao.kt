@@ -1,0 +1,22 @@
+package com.example.habitcoachai.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.habitcoachai.data.local.entity.HabitCompletionEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface HabitCompletionDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCompletion(
+        entity: HabitCompletionEntity)
+
+    @Query("""
+        SELECT habitId FROM habit_completions
+        WHERE date = :date
+    """)
+    fun getCompletedHabitIdsForDate(date: String): Flow<List<Int>>
+}
