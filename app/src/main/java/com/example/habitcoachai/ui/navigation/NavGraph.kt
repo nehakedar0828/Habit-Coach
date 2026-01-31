@@ -13,6 +13,7 @@ import com.example.habitcoachai.data.preferences.UserPreferences
 import com.example.habitcoachai.ui.screens.DashboardScreen
 import com.example.habitcoachai.ui.screens.HomeScreen
 import com.example.habitcoachai.ui.screens.OnboardingScreen
+import com.example.habitcoachai.ui.screens.StreakScreen
 import com.example.habitcoachai.viewmodel.UserViewModel
 import com.example.habitcoachai.viewmodel.viewModelFactory
 
@@ -49,7 +50,13 @@ fun NavGraph(){
         }
 
         composable(AppNav.DASHBOARD) {
-            DashboardScreen(userName = userName ?: "")
+            DashboardScreen(userName = userName ?: "",navController = navController)
+        }
+
+        composable(AppNav.STREAK){
+            StreakScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
 
     }

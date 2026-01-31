@@ -23,8 +23,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.habitcoachai.data.local.db.HabitDatabase
 import com.example.habitcoachai.data.local.entity.HabitEntity
+import com.example.habitcoachai.ui.navigation.AppNav
 import com.example.habitcoachai.viewmodel.HabitViewModel
 import com.example.habitcoachai.viewmodel.HabitViewModelFactory
 import java.time.LocalDate
@@ -44,7 +46,10 @@ private val SuccessGreen = Color(0xFF22C55E)
 /* ---------------- DASHBOARD ---------------- */
 
 @Composable
-fun DashboardScreen(userName: String?) {
+fun DashboardScreen(
+    userName: String?,
+    navController: NavController
+) {
 
     var showAddDialog by remember { mutableStateOf(false) }
     var habitName by remember { mutableStateOf("") }
@@ -123,6 +128,59 @@ fun DashboardScreen(userName: String?) {
                 }
             }
 
+            val totalHabits = habits.size
+            val completedToday = completedIds.size
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            /* TODAY PROGRESS */
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+
+                    Text(
+                        text = "Today's Progress",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "$completedToday / $totalHabits habits completed",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = if (totalHabits == 0) 0f
+                        else completedToday.toFloat() / totalHabits.toFloat(),
+                        color = SecondaryBlue,
+                        trackColor = BackgroundDark
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            /* STREAK BUTTON */
+
+            Button(
+                onClick = { navController.navigate(AppNav.STREAK) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = SecondaryBlue)
+            ) {
+                Text("View Progress 📈", color = Color.White)
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
             Text(
@@ -169,15 +227,11 @@ fun DashboardScreen(userName: String?) {
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
-            Text(
-                text = "+",
-                fontSize = 28.sp,
-                color = Color.White
-            )
+            Text("+", fontSize = 28.sp, color = Color.White)
         }
     }
 
-    /* ADD HABIT */
+    /* ADD HABIT DIALOG */
 
     if (showAddDialog) {
         AlertDialog(
@@ -218,15 +272,8 @@ fun DashboardScreen(userName: String?) {
     if (habitToDelete != null) {
         AlertDialog(
             onDismissRequest = { habitToDelete = null },
-            title = {
-                Text(
-                    text = "Delete Habit?",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text("Are you sure you want to delete this habit?")
-            },
+            title = { Text("Delete Habit?", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this habit?") },
             confirmButton = {
                 TextButton(
                     onClick = {

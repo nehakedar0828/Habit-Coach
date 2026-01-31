@@ -4,4 +4,6 @@ object AppNav {
     const val WELCOME = "welcome"
     const val ONBOARDING = "onboarding"
     const val DASHBOARD = "dashboard"
+
+    const val STREAK = "streak"
 }
