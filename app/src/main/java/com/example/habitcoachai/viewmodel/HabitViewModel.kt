@@ -32,6 +32,8 @@ class HabitViewModel(
         viewModelScope.launch {
             if(checked){
                 repository.markHabitDoneForDate(habit.id, date.toString())
+            }else{
+                repository.unmarkHabitForDate(habit.id,date.toString())
             }
             }
     }
@@ -39,4 +41,10 @@ class HabitViewModel(
     fun getCompletedHabitIdsForDate(date: String) =
         repository.getCompletedHabitIdsForDate(date)
 
+    fun deleteHabit(habit: HabitEntity){
+        viewModelScope.launch {
+            repository.deleteHabit(habit.id)
+        }
+    }
 }
+

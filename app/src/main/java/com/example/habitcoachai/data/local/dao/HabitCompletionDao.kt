@@ -19,4 +19,13 @@ interface HabitCompletionDao {
         WHERE date = :date
     """)
     fun getCompletedHabitIdsForDate(date: String): Flow<List<Int>>
+
+    @Query("""
+        DELETE FROM habit_completions
+        WHERE habitId = :habitId AND date = :date
+    """)
+    suspend fun deleteCompletionForDate(
+        habitId: Int,
+        date: String
+    )
 }

@@ -30,6 +30,7 @@ interface HabitDao {
         date: String?
     )
 
-
+    @Query("DELETE FROM habits WHERE id = :habitId")
+    suspend fun deleteHabit(habitId: Int)
 
 }

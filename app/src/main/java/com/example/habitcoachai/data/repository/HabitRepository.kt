@@ -70,4 +70,18 @@ class HabitRepository(
 
     fun getCompletedHabitIdsForDate(date: String) =
         completionDao.getCompletedHabitIdsForDate(date)
+
+    suspend fun deleteHabit(habitId: Int){
+        habitDao.deleteHabit(habitId)
+    }
+
+    suspend fun unmarkHabitForDate(
+        habitId: Int,
+        date: String
+    ) {
+        completionDao.deleteCompletionForDate(
+            habitId = habitId,
+            date = date
+        )
+    }
 }
