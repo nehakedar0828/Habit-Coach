@@ -28,4 +28,15 @@ interface HabitCompletionDao {
         habitId: Int,
         date: String
     )
+
+    @Query("""
+        SELECT DISTINCT date FROM habit_completions
+        ORDER BY date DESC
+    """)
+    suspend fun getAllCompletedDates(): List<String>
+
+    @Query("""
+        SELECT DISTINCT date FROM habit_completions
+    """)
+    fun getAllCompletedDatesFlow(): Flow<List<String>>
 }

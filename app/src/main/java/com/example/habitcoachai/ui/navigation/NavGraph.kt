@@ -9,57 +9,71 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.habitcoachai.data.local.db.HabitDatabase
 import com.example.habitcoachai.data.preferences.UserPreferences
 import com.example.habitcoachai.ui.screens.DashboardScreen
 import com.example.habitcoachai.ui.screens.HomeScreen
 import com.example.habitcoachai.ui.screens.OnboardingScreen
 import com.example.habitcoachai.ui.screens.StreakScreen
+import com.example.habitcoachai.viewmodel.HabitViewModel
 import com.example.habitcoachai.viewmodel.UserViewModel
-import com.example.habitcoachai.viewmodel.viewModelFactory
-
+import com.example.habitcoachai.viewmodel.ViewModelFactory
 
 @Composable
-fun NavGraph(){
+fun NavGraph() {
+
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    val userPrefs = remember{ UserPreferences(context) }
-    val userViewModel : UserViewModel = viewModel(
-        factory = viewModelFactory(userPreferences = userPrefs)
+    /* -------- User ViewModel (Preferences) -------- */
+
+    val userPrefs = remember { UserPreferences(context) }
+
+    val userViewModel: UserViewModel = viewModel(
+        factory = ViewModelFactory(userPreferences = userPrefs)
     )
 
     val userName by userViewModel.userName.collectAsState()
 
-    val startDestination = if (userName.isNullOrEmpty()){
-        AppNav.WELCOME
-    }else{
-        AppNav.DASHBOARD
-    }
+    val startDestination =
+        if (userName.isNullOrEmpty()) AppNav.WELCOME else AppNav.DASHBOARD
 
+    /* -------- Navigation -------- */
 
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+
         composable(AppNav.WELCOME) {
             HomeScreen(navController)
         }
 
-        composable(AppNav.ONBOARDING){
+        composable(AppNav.ONBOARDING) {
             OnboardingScreen(navController)
         }
 
         composable(AppNav.DASHBOARD) {
-            DashboardScreen(userName = userName ?: "",navController = navController)
-        }
-
-        composable(AppNav.STREAK){
-            StreakScreen(
-                onBack = { navController.popBackStack() }
+            DashboardScreen(
+                userName = userName ?: "",
+                navController = navController
             )
         }
 
+        composable(AppNav.STREAK) {
+
+            val database = remember {
+                HabitDatabase.getDatabase(context)
+            }
+
+            val habitViewModel: HabitViewModel = viewModel(
+                factory = ViewModelFactory(database = database)
+            )
+
+            StreakScreen(
+                habitViewModel = habitViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
-
-

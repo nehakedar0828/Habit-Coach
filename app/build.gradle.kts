@@ -66,5 +66,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
 
 }

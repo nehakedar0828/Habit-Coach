@@ -4,6 +4,7 @@ import com.example.habitcoachai.data.local.dao.HabitCompletionDao
 import com.example.habitcoachai.data.local.dao.HabitDao
 import com.example.habitcoachai.data.local.entity.HabitCompletionEntity
 import com.example.habitcoachai.data.local.entity.HabitEntity
+import java.time.LocalDate
 
 class HabitRepository(
     private val habitDao: HabitDao,
@@ -84,4 +85,30 @@ class HabitRepository(
             date = date
         )
     }
+
+    suspend fun calculateCurrentStreak(): Int{
+        val dates = completionDao.getAllCompletedDates()
+            .map{ LocalDate.parse(it)}
+
+        if(dates.isEmpty()) return 0
+
+
+        var streak = 0
+        var expectedDate =LocalDate.now()
+
+        for(date in dates) {
+            if(date == expectedDate){
+                streak++
+                expectedDate = expectedDate.minusDays(1)
+            }else if(date < expectedDate){
+                break
+            }
+        }
+
+        return streak
+    }
+
+    fun getAllCompletedDatesFlow() =
+        completionDao.getAllCompletedDatesFlow()
+
 }

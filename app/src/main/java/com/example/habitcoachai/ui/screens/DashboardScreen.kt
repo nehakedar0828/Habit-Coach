@@ -152,7 +152,11 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "$completedToday / $totalHabits habits completed",
+                        text = if(totalHabits == 0) {
+                            "No habits yet"
+                        }else {
+                            "$completedToday / $totalHabits habits completed"
+                        },
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary

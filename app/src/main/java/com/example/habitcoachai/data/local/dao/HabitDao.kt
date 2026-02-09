@@ -33,4 +33,7 @@ interface HabitDao {
     @Query("DELETE FROM habits WHERE id = :habitId")
     suspend fun deleteHabit(habitId: Int)
 
+    @Query("""SELECT DISTINCT date FROM habit_completions
+        ORDER BY date DESC""")
+    suspend fun getAllCompletedDates(): List<String>
 }
