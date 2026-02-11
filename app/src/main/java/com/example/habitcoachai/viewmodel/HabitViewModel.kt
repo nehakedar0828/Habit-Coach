@@ -8,11 +8,12 @@ import com.example.habitcoachai.data.repository.HabitRepository
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.State
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.time.DayOfWeek
 import java.time.LocalDate
-
-
+import java.time.temporal.TemporalAdjusters
 
 
 class HabitViewModel(
@@ -22,6 +23,8 @@ class HabitViewModel(
     val habits = repository.getHabits()
     private val _currentStreak = mutableStateOf(0)
     val currentStreak: State<Int> = _currentStreak
+
+    private val todayFlow = MutableStateFlow(LocalDate.now())
 
 
     fun addHabit(name: String){
@@ -36,18 +39,25 @@ class HabitViewModel(
         }
     }
 
-    fun toggleHabitForDate(
+    fun toggleHabitForDate(//marks habit is done or not
         habit: HabitEntity,
         date: String,
         checked: Boolean
     ){
         viewModelScope.launch {
+
+            val selectedDate = LocalDate.parse(date)
+            val today = LocalDate.now()
+
+            if(selectedDate.isAfter(today)) return@launch
+
             if(checked){
                 repository.markHabitDoneForDate(habit.id, date.toString())
             }else{
                 repository.unmarkHabitForDate(habit.id,date.toString())
             }
             loadCurrentStreak()
+            refreshToday()
             }
     }
 
@@ -77,18 +87,29 @@ class HabitViewModel(
     }
 
     fun weeklyCompletionStats() : Flow<Map<DayOfWeek, Int>> {
-        return completedDatesAsLocalDate().map { completedDates ->
+        return combine(
+            completedDatesAsLocalDate(),
+            todayFlow
+        ) { completedDates, today ->
+
+            val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+            val thisWeekDates = completedDates.filter {
+                !it.isBefore(startOfWeek) && !it.isAfter(today)
+            }
 
             val counts = DayOfWeek.values().associateWith { 0 }.toMutableMap()
 
-            completedDates.forEach {
-                date ->
-                val day = date.dayOfWeek
-                counts[day] = counts[day]!! + 1
+            thisWeekDates.forEach { date ->
+                counts[date.dayOfWeek] = counts[date.dayOfWeek]!! + 1
             }
 
             counts
         }
+    }
+
+    fun refreshToday(){
+        todayFlow.value = LocalDate.now()
     }
 
 }

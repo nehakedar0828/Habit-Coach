@@ -3,7 +3,9 @@ package com.example.habitcoachai.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.habitcoachai.ui.components.WeeklyBarChartView
 import com.example.habitcoachai.viewmodel.HabitViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -43,6 +46,7 @@ fun StreakScreen(
 
     LaunchedEffect(Unit){
         habitViewModel.loadCurrentStreak()
+        habitViewModel.refreshToday()
     }
 
     val streak by habitViewModel.currentStreak
@@ -53,7 +57,11 @@ fun StreakScreen(
             .background(BackgroundDark)
             .padding(20.dp)
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 20.dp)
+        ) {
 
             IconButton(onClick = onBack) {
                 Icon(
@@ -141,7 +149,16 @@ fun StreakScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            WeeklyBarChart(habitViewModel)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    WeeklyGraphSection(habitViewModel)
+                }
+            }
+
         }
     }
 }
@@ -204,76 +221,13 @@ fun DayBox(date: LocalDate, isCompleted: Boolean) {
     }
 }
 
+
 @Composable
-fun WeeklyBarChart(habitViewModel: HabitViewModel) {
+fun WeeklyGraphSection(habitViewModel: HabitViewModel){
 
     val stats by habitViewModel
         .weeklyCompletionStats()
         .collectAsStateWithLifecycle(emptyMap())
 
-    val maxValue = (stats.values.maxOrNull() ?: 1).coerceAtLeast(1)
-
-    val orderedDays = listOf(
-        DayOfWeek.SUNDAY,
-        DayOfWeek.MONDAY,
-        DayOfWeek.TUESDAY,
-        DayOfWeek.WEDNESDAY,
-        DayOfWeek.THURSDAY,
-        DayOfWeek.FRIDAY,
-        DayOfWeek.SATURDAY
-    )
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
-    ){
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .height(160.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Bottom
-        ){
-            orderedDays.forEach { day ->
-
-                val count = stats[day] ?: 0
-                val barHeightRatio = count.toFloat() / maxValue
-                val barHeight = (120 * barHeightRatio).dp
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom
-
-                ){
-                    Text(
-                        text = count.toString(),
-                        color = TextPrimary,
-                        fontSize = 14.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .width(18.dp)
-                            .height(barHeight)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SecondaryBlue)
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = day.name.take(3),
-                        color = TextSecondary,
-                        fontSize = 12.sp
-                    )
-                }
-
-            }
-        }
-    }
-
+    WeeklyBarChartView(stats)
 }
-

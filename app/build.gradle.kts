@@ -67,6 +67,5 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
-
-
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

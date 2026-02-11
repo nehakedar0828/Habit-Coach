@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +31,7 @@ import com.example.habitcoachai.data.local.entity.HabitEntity
 import com.example.habitcoachai.ui.navigation.AppNav
 import com.example.habitcoachai.viewmodel.HabitViewModel
 import com.example.habitcoachai.viewmodel.HabitViewModelFactory
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -55,6 +58,7 @@ fun DashboardScreen(
     var habitName by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var habitToDelete by remember { mutableStateOf<HabitEntity?>(null) }
+    val isFutureDate = selectedDate.isAfter(LocalDate.now())
 
     val context = LocalContext.current
     val database = remember { HabitDatabase.getDatabase(context) }
@@ -211,6 +215,7 @@ fun DashboardScreen(
                     HabitCard(
                         habit = habit,
                         isChecked = habit.id in completedIds,
+                        isFutureDate = isFutureDate,
                         onCheckedChange = { checked ->
                             habitViewModel.toggleHabitForDate(
                                 habit,
@@ -304,7 +309,8 @@ fun HabitCard(
     habit: HabitEntity,
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    isFutureDate: Boolean
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -321,7 +327,7 @@ fun HabitCard(
 
             Checkbox(
                 checked = isChecked,
-                onCheckedChange = onCheckedChange,
+                onCheckedChange = if(isFutureDate) null else onCheckedChange,
                 colors = CheckboxDefaults.colors(
                     checkedColor = SuccessGreen,
                     uncheckedColor = TextSecondary
@@ -336,7 +342,11 @@ fun HabitCard(
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (isChecked) TextSecondary else TextPrimary
+                color = when {
+                    isFutureDate -> TextSecondary.copy(alpha = 0.5f)
+                    isChecked -> TextPrimary
+                    else -> TextPrimary
+                }
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -360,22 +370,37 @@ fun DateStrip(
     onDateSelected: (LocalDate) -> Unit
 ) {
     val today = LocalDate.now()
-    val dates = remember { (-7..7).map { today.plusDays(it.toLong()) } }
+    val dates = remember(today) { (-7..7).map { today.plusDays(it.toLong()) } }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    val todayIndex = dates.indexOf(today)
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(todayIndex) {
+        if(todayIndex >= 0){
+            delay(100)
+            listState.animateScrollToItem(todayIndex)
+        }
+    }
+
+    LazyRow(
+        state = listState,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
-        dates.forEach { date ->
+        items(dates) { date ->
+
+            val isFuture = date.isAfter(today)
             val isSelected = date == selectedDate
 
             Column(
                 modifier = Modifier
                     .width(64.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (isSelected) SecondaryBlue else CardDark)
+                    .background(when {
+                        isFuture -> CardDark.copy(alpha = 0.4f) // grey future days
+                        isSelected -> SecondaryBlue
+                        else -> CardDark
+                    })
                     .clickable { onDateSelected(date) }
                     .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
