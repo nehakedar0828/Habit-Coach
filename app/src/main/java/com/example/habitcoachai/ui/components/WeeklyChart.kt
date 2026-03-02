@@ -1,86 +1,106 @@
 package com.example.habitcoachai.ui.components
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.github.mikephil.charting.charts.BarChart
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import java.time.DayOfWeek
 
 @Composable
-fun WeeklyBarChartView(stats: Map<DayOfWeek, Int>) {
+fun WeeklyLineChartView(stats: Map<String, List<Int>>) {
 
     val days = listOf("Mon","Tue","Wed","Thu","Fri","Sat","Sun")
 
-    val values = days.mapIndexed { index, _ ->
-        val day = DayOfWeek.of(index + 1)
-        BarEntry(index.toFloat(), (stats[day] ?: 0).toFloat())
-    }
+    val colors = listOf(
+        "#38BDF8", "#22C55E", "#F59E0B",
+        "#A78BFA", "#F472B6", "#FB7185"
+    )
 
     AndroidView(
         modifier = Modifier
             .fillMaxWidth()
             .height(260.dp),
+
         factory = { context ->
 
-        BarChart(context).apply {
+            LineChart(context).apply {
 
-            setTouchEnabled(false)
-            isDragEnabled = false
-            setScaleEnabled(false)
-            setPinchZoom(false)
-            isDoubleTapToZoomEnabled = false
-            isHighlightPerTapEnabled = false
-            isHighlightPerDragEnabled = false
+                setTouchEnabled(false)
+                description.isEnabled = false
+                legend.isEnabled = true      // show habit names
+                setDrawGridBackground(false)
 
-            description.isEnabled = false
-            legend.isEnabled = false
-            setDrawGridBackground(false)
+                axisRight.isEnabled = false
 
-            axisRight.isEnabled = false
-            axisLeft.textColor = AndroidColor.WHITE
-            xAxis.textColor = AndroidColor.WHITE
+                axisLeft.apply {
+                    axisMinimum = 0f
+                    axisMaximum = 1.2f   // habits are 0 or 1
+                    granularity = 1f
+                    textColor = AndroidColor.WHITE
+                    setDrawGridLines(false)
+                }
 
-            axisLeft.axisMaximum = 0f
-            axisLeft.granularity = 1f
+                xAxis.apply {
+                    position = XAxis.XAxisPosition.BOTTOM
+                    valueFormatter = IndexAxisValueFormatter(days)
+                    textColor = AndroidColor.WHITE
+                    setDrawGridLines(false)
+                }
 
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            xAxis.valueFormatter = IndexAxisValueFormatter(days)
-            xAxis.setDrawGridLines(false)
+                val dataSets = stats.entries.mapIndexed { index, entry ->
 
-            setFitBars(true)
-            animateY(1200)
+                    val habitName = entry.key
+                    val values = entry.value
 
-            val dataSet = BarDataSet(values, "Weekly").apply {
-                color = AndroidColor.parseColor("#38BDF8")
-                valueTextColor = AndroidColor.WHITE
-                valueTextSize = 14f
+                    val lineEntries = values.mapIndexed { i, v ->
+                        Entry(i.toFloat(), v.toFloat())
+                    }
 
-                highLightAlpha = 0
+                    LineDataSet(lineEntries, habitName).apply {
+                        color = AndroidColor.parseColor(colors[index % colors.size])
+                        setCircleColor(color)
+                        lineWidth = 3f
+                        circleRadius = 5f
+                        setDrawValues(false)
+                        mode = LineDataSet.Mode.CUBIC_BEZIER
+                    }
+                }
+
+                data = LineData(dataSets)
+                animateX(1200)
             }
 
-            data = BarData(dataSet).apply {
-                barWidth = 0.8f
+        },
+
+        update = { chart ->
+
+            val dataSets = stats.entries.mapIndexed { index, entry ->
+
+                val habitName = entry.key
+                val values = entry.value
+
+                val lineEntries = values.mapIndexed { i, v ->
+                    Entry(i.toFloat(), v.toFloat())
+                }
+
+                LineDataSet(lineEntries, habitName).apply {
+                    color = AndroidColor.parseColor(colors[index % colors.size])
+                    setCircleColor(color)
+                    lineWidth = 3f
+                    circleRadius = 5f
+                    setDrawValues(false)
+                    mode = LineDataSet.Mode.CUBIC_BEZIER
+                }
             }
+
+            chart.data = LineData(dataSets)
+            chart.invalidate()
         }
-
-    }, update = { chart ->
-
-        val dataSet = BarDataSet(values, "Weekly").apply {
-            color = AndroidColor.parseColor("#38BDF8")
-            valueTextColor = AndroidColor.WHITE
-        }
-
-        chart.data = BarData(dataSet).apply{
-            barWidth = 0.8f
-        }
-
-        chart.invalidate()
-    })
+    )
 }

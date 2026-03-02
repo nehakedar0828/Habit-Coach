@@ -35,6 +35,12 @@ import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import com.example.habitcoachai.notifications.ReminderScheduler
+import android.Manifest
+import android.os.Build
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 /* ---------------- COLORS ---------------- */
 
@@ -62,6 +68,19 @@ fun DashboardScreen(
 
     val context = LocalContext.current
     val database = remember { HabitDatabase.getDatabase(context) }
+
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            Log.d("REMINDER_DEBUG", "Notification permission: $granted")
+        }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     val habitViewModel: HabitViewModel = viewModel(
         factory = HabitViewModelFactory(database)

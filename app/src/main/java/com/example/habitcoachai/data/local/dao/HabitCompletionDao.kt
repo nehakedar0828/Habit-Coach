@@ -39,4 +39,9 @@ interface HabitCompletionDao {
         SELECT DISTINCT date FROM habit_completions
     """)
     fun getAllCompletedDatesFlow(): Flow<List<String>>
+
+    @Query("""SELECT * FROM habit_completions 
+        WHERE habitId = :habitId AND date = :date LIMIT 1
+    """)
+    suspend fun isHabitDoneOnDate(habitId: Int, date: String): HabitCompletionEntity?
 }

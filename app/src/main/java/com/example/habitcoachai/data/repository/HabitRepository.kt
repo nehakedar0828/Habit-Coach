@@ -111,4 +111,8 @@ class HabitRepository(
     fun getAllCompletedDatesFlow() =
         completionDao.getAllCompletedDatesFlow()
 
+    suspend fun isHabitDoneOnDate(habitId: Int, date: String): Boolean {
+        return completionDao.isHabitDoneOnDate(habitId, date) != null
+    }
+
 }

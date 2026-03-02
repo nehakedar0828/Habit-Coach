@@ -112,5 +112,71 @@ class HabitViewModel(
         todayFlow.value = LocalDate.now()
     }
 
+    fun weeklyStatsPerHabit() : Flow<Map<String, List<Int>>> {
+        return combine(
+            habits,
+            todayFlow
+        ) { habitList, today ->
+
+            val startOfWeek = today.with(
+                java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
+            )
+
+            val weekDates = (0..6).map { startOfWeek.plusDays(it.toLong()) }
+
+            buildMap {
+                habitList.forEach { habit ->
+
+                    val counts = weekDates.map { date ->
+                        repository.isHabitDoneOnDate(habit.id, date.toString())
+                            .let { if (it) 1 else 0 }
+                    }
+
+                    put(habit.name, counts)
+                }
+
+
+            }
+        }
+    }
+
+    fun completionRateLast30Days(): Flow<Int> {
+        return combine(
+            habits,
+            completedDatesAsLocalDate()
+        ) { habitList, completedDates ->
+
+            if (habitList.isEmpty()) return@combine 0
+
+            val today = LocalDate.now()
+            val last30Days = (0..29).map { today.minusDays(it.toLong())}
+
+            val totalPossibleCompletions = habitList.size * last30Days.size
+
+            val actualCompletions = completedDates.count { it in last30Days}
+
+            ((actualCompletions / totalPossibleCompletions.toFloat()) * 100).toInt()
+
+        }
+    }
+
+    fun bestDayOfWeek(): Flow<String> {
+        return completedDatesAsLocalDate().map { dates ->
+
+            val counts = DayOfWeek.values().associateWith { 0 }.toMutableMap()
+
+            dates.forEach { date ->
+                counts[date.dayOfWeek] = counts[date.dayOfWeek]!! + 1
+            }
+
+            counts.maxByOrNull { it.value }?.key
+                ?.name?.lowercase()?.replaceFirstChar{ it.uppercase() }
+                ?: "N/A"
+        }
+    }
+
+    fun totalCompletions() : Flow<Int>{
+        return completedDatesAsLocalDate().map { it.size }
+    }
 }
 

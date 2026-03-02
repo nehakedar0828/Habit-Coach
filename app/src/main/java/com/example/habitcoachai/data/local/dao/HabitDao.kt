@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.OnConflictStrategy
+import com.example.habitcoachai.data.local.entity.HabitCompletionEntity
 import com.example.habitcoachai.data.local.entity.HabitEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -36,4 +37,5 @@ interface HabitDao {
     @Query("""SELECT DISTINCT date FROM habit_completions
         ORDER BY date DESC""")
     suspend fun getAllCompletedDates(): List<String>
+
 }
